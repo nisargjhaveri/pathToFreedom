@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>HTML Template</title>
+		<style>
+			* {
+				z-index : 1	!important;
+			}
+			body{
+				margin: 0;
+				padding: 0;
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				overflow: hidden;
+				transition: background-color 1s;
+			}
+			.smallBox, .person{
+				position: absolute;
+			}
+			.explode{
+				transition: all 0.5s;
+			}
+			.laser {
+				height: 3px;
+				border-radius: 5px;
+				background: #333;
+				width:50px;
+				position: absolute;
+			}
+			.speaker{
+				position: absolute;
+				top: -175px;
+				left: -180px;
+				height: 300px;
+				width: 400px;
+				border-radius: 300px;
+				background: red;
+				-webkit-transform: rotate(20deg);
+			}
+			.sabh {
+				position: absolute;
+				left: 0;
+			}
+			.sabha {
+				position: absolute;
+				left: 70px;
+				background: red;
+				-webkit-transform: rotate(-6deg);
+				transform: rotate(-6deg);
+			}
+		</style>
+		<script src='jquery.js'></script>
+		<script>
+			/*var fireInterval = 3250;
+			var destroyInterval = 10;
+			var l = {
+				array:new Array(),
+			};
+			
+			function Laser () {
+				this.left = window.innerWidth;
+				this.top = getn(0,window.innerHeight);
+				this.element = $('<div class="laser">');
+				this.element.css({
+					top:this.top+'px',
+					left:this.left+'px',
+				});
+				$('body').append(this.element);
+				this.fire();
+			}
+			
+			Laser.prototype.fire = function(){
+				var len = Math.sqrt(window.innerHeight*window.innerHeight + window.innerWidth*window.innerWidth);
+				this.element.animate({
+					'left':'-='+Math.floor(len),
+				},fireInterval);
+				setTimeout(function(elem){
+					elem.destroy();
+					var ind = lasers.indexOf(elem);
+					if(ind >=0)
+						lasers.splice(ind, 1);
+				},fireInterval,this);
+			}
+			Laser.prototype.destroy = function(){
+				this.element.css('width','0');
+				this.element.remove();
+			}
+			Laser.prototype.getPos = function(){
+				return {
+					x:parseInt(this.element.css('left')),
+					y:parseInt(this.element.css('top')),
+				}
+			}
+			function getAll() {
+				var all = new Array();
+				for(var i=0; i<l.array.length;i++) {
+					all[i] = l.array[i].getPos();
+				}
+				return all;
+			}*/
+			function getn(min, max, flag) {
+				var rand = min+Math.random()*(max-min);
+				return (flag)?rand:Math.floor(rand);
+			}
+			function Laser(){
+				var left = window.innerWidth+getn(0,300);
+				var top = getn(0,window.innerHeight);
+				var element = $('<div class="laser">');
+				var z=this;
+				this.element = element
+				this.top = top;
+				element.css({
+					top: top,
+					left: left,
+				});
+				$('body').append(element);
+				element.animate({
+					left: -50
+				},2000,'linear',function(){
+					element.remove();
+					lasers.splice(lasers.indexOf(z),1);
+				});
+			}
+		</script>
+		<script>
+			var clear;
+			function SmallBox(){
+				var box = $('<div class="smallBox"></div>').appendTo($('body'));
+				this.dom = box;
+				this.height = 350;
+				this.width = 350;
+				box.css({
+					width: this.height,
+					height: this.width,
+					top: getn(0,$('body').height() - this.height),
+					left: -this.width/2,
+					display: 'none'
+				}).fadeIn(500);
+				var persons = getn(10,15);
+				for(var i = 0; i < persons; ++i){
+					this.addPerson();
+				}
+			}
+			SmallBox.prototype = {
+				addPerson: function(){
+					var per = $('<div class="person"></div>').appendTo(this.dom);
+					per.css({
+						height: getn(30,75),
+						width: getn(30,75),
+						background: 'rgb('+getn(0+(total*255/5),255)+','+getn(0,255-(total*255/5))+','+getn(0,255-(total*255/5))+')',
+						borderRadius: getn(5,25),
+						top: getn(0,this.height - 75),
+						left: getn(0,this.width - 75),
+					});
+				},
+				explode: function(){
+					var parent = this;
+					this.dom.stop();
+					this.dom.clearQueue();
+					if(boxes.indexOf(parent) >= 0)
+						boxes.splice(boxes.indexOf(parent),1);
+					this.dom.find('.person').each(function(){
+						$(this).clearQueue();
+						var top = parseInt($(this).css('top'));
+						var left = parseInt($(this).css('left'));
+						var height = $(this).height();
+						var width = $(this).width();
+						if(getn(0,2)){
+							var topMove;
+							if(getn(0,2))
+								topMove = parseInt(parent.dom.css('top'))-top;
+							else 
+								topMove = $('body').height();
+							var leftMove = getn(-parseInt(parent.dom.css('left'))-left ,100);
+						}
+						else {
+							var topMove = getn(0, $('body').height());
+							var leftMove = -parseInt(parent.dom.css('left'))-left-width;
+						}
+						$(this).css({
+							transition: 'none'
+						});
+						
+						$(this).animate({
+							top: topMove,
+							left: leftMove
+						},1000);//remove();
+					});
+					this.dom.animate({
+						opacity: 0
+					});
+					var parent = this;
+					setTimeout(function(){
+						parent.dom.remove();
+					},1000);
+				},
+				bullet: function(x, y){
+					clear = false;
+					var parent = this;
+					//x -= parseInt(this.dom.css('left'));
+					y -= parseInt(this.dom.css('top'));
+					//console.log(x,y);
+					if(!(/*x>0 && x<this.width &&*/y>0 && y<this.height)){
+						clear = true;
+						return;
+					}
+					this.explode();
+					/*this.dom.find('.person').each(function(){
+						var top = parseInt($(this).css('top'));
+						var left = parseInt($(this).css('left'));
+						var height = $(this).height();
+						var width = $(this).width();
+						if(x > left && x < left + width 
+							&& y > top && y< top + height){
+							
+							console.log('ex');
+							$(this).addClass('explode');
+							$(this).css({
+								opacity: 0,
+								transform: 'scale(3)',
+								background: 'red'
+							},500,'linear');
+							var elem = $(this);
+							setTimeout(function(){
+								elem.remove();
+								if(!parent.dom.find('.person').length){
+									if(boxes.indexOf(parent) >= 0)
+										boxes.splice(boxes.indexOf(parent),1);
+									parent.dom.remove();
+								}
+							},1000);
+						}
+					});*/
+					clear = true;
+				},
+				shuffle: function(){
+					clear = false;
+					var parent = $('body');
+					var top = parseInt(this.dom.css('top'));
+					var left = parseInt(this.dom.css('left'));
+					var topMove = getn(-50,50);
+					var leftMove = getn(0,100);
+					while((this.height + top + topMove > parent.height)
+						|| (top + topMove < 0)){
+						topMove = getn(-50,50);
+					}
+					this.dom.animate({
+						top: top+topMove,
+						left: left+leftMove
+					},500,'linear');
+					
+					var parent = this;
+					this.dom.find('.person').each(function(){
+						var top = parseInt($(this).css('top'));
+						var left = parseInt($(this).css('left'));
+						var height = $(this).height();
+						var width = $(this).width();
+						var topMove = getn(-50,50);
+						var leftMove = getn(-50,50);
+						while((height + top + topMove > parent.height)
+							|| (top + topMove < 0)){
+							topMove = getn(-50,50);
+						}
+						while((width + left + leftMove > parent.width)
+							|| (left + leftMove < 0)){
+							leftMove = getn(-50,50);
+						}
+						$(this).animate({
+							top: top+topMove,
+							left: left+leftMove
+						},500,'linear');
+						/*if(getn(-10,2)>0){
+							parent.bullet(left+ leftMove/2, top+topMove/2);
+							console.log('fired');
+						}*/
+					});
+					if(totalFrame >= 35){
+						if( (totalFrame == 35 || totalFrame == 40|| totalFrame == 45) && notKilled){
+							if(totalFrame == 35)
+								$('#text').fadeOut(function(){
+									$(this).text('An enemy, wanting to exploit our resources, attacked with all his might.').fadeIn();
+								})
+							this.explode();
+							notKilled = false;
+						}
+						else if(getn(-20,2) > 0){
+							this.explode();
+						}
+					}
+					if(left > $(window).width()){
+						if(boxes.indexOf(this) >= 0)
+							boxes.splice(boxes.indexOf(this),1);
+						this.dom.remove();
+					}
+					clear = true;
+				}
+			}
+			var boxes = [];
+			var lasers = [];
+			total = 0;
+			frame = 0;
+			totalFrame = 0;
+			notKilled = true;
+			flag = false;
+			iii=0;
+			a=[[6,515],[13,118],[19,251],[85,287],[136,12],[148,89],[149,154],[154,158],[182,458],[187,88],[188,404],[191,570],[197,81],[239,60],[242,124],[248,464],[254,280],[255,415],[271,276],[280,176],[291,577],[300,251],[328,512],[331,379],[358,111],[368,513],[372,461],[393,572],[398,332],[431,344],[444,558],[451,249],[460,445],[499,456],[520,173],[573,70],[574,218],[598,184],[604,603],[607,393],[615,481],[678,332],[713,231],[721,454],[736,567],[738,315],[750,62],[770,166],[815,596],[828,70],[830,189],[846,428],[889,471],[903,301],[917,321],[929,72],[935,371],[938,598],[965,356],[1005,425],[1040,155],[1049,173],[1054,488],[1062,501],[1064,397],[1065,229],[1066,396],[1067,38],[1076,108],[1079,504],[1093,161],[1095,256],[1103,191],[1133,223],[1138,602],[1183,350],[1212,520],[1220,204],[1223,175]];
+			aTemp = [];
+			for(i=0;i<a.length;i++){
+				aTemp[i]=a[i];
+			}
+			pers = [];
+			stage = 0;
+			var inter;
+			function init(){
+				boxes.push(new SmallBox());
+				clear=true;
+				inter = window.setInterval(function(){
+					if(!clear)return;
+					clear = false;
+					notKilled = true;
+					if( stage == 0){
+						if(total > 13){
+							myBoxes = boxes.slice(0);
+							for(var i = 0; i < myBoxes.length; ++i)
+								myBoxes[i].explode();
+							stage = 1;
+							total = 0;
+						}
+						else {
+							for(var i = 0; i < boxes.length; ++i)
+								boxes[i].shuffle();
+							if(frame > 10){
+							//if(getn(-5,2) > 0){
+								boxes.push(new SmallBox());
+								total++;
+								frame=0;
+							}
+						}
+						frame++;
+						totalFrame++;
+						if(totalFrame == 3){
+							$('#text').hide().text('This was our world.').fadeIn();
+						}
+						else if(totalFrame == 8){
+							$('#text').fadeOut(function(){
+								$(this).text('A world of happy, contented people.').fadeIn();
+							})
+						}
+						else if(totalFrame == 15){
+							$('#text').fadeOut(function(){
+								$(this).text('Liberty and freedom were upheld as fundamental ideals of society.').fadeIn();
+							})
+						}
+						else if(totalFrame == 25){
+							$('#text').fadeOut(function(){
+								$(this).text('But our happiness was not to last for long...').fadeIn();
+							})
+							$('body').css({
+								background: '#999'
+							});
+						}
+						else if(totalFrame == 45){
+							boxes.push(new SmallBox());
+							$('#text').fadeOut(function(){
+								$(this).text('We retaliated, but our enemy was simply too powerful.').fadeIn();
+							})
+						}
+						else if(totalFrame == 55){
+							myBoxes = boxes.slice(0);
+							for(var i = 0; i < myBoxes.length; ++i)
+								myBoxes[i].explode();
+							stage = 1;
+							total = 0;
+							$('#text').fadeOut();
+						}
+					}
+					else if( stage == 1){
+						var parent;
+						if(total == 0){
+							$('#text').css({
+								position: 'absolute',
+								right: 0,
+								bottom: 10,
+								width: '60%',
+							}).fadeOut(function(){
+								$(this).text('We planned to go to war.').fadeIn();
+							})
+							$('body').append($('<div class="speaker"></div>'));
+							for (var j = 0; j<6; j++){
+								parent = $('<div class="sabh"></div>').css({
+										top: 0.5*($('body').height())+(j*65),
+									}).appendTo($('body'));
+								for (var i = 0; i<40; i++){
+									parent = $('<div class="sabha" style="'+(!i?'left: 0':'')+';-webkit-transform: rotate('+(-6+(j*0.43))+'deg)"></div>')
+										.css({
+											height: getn(30,60),
+											width: getn(30,75),
+											background: 'rgb('+getn(0+(9*255/15),255)+','+getn(0,255-(10*255/15))+','+getn(0,255-(12*255/15))+')',
+											borderRadius: getn(5,25),
+										})
+										.appendTo(parent)
+								}
+							}
+							$('.sabh').hide().fadeIn();
+						}
+						if(total > 10){
+							stage = 2;
+						}
+						total++;
+						
+					}
+					else if( stage == 2){
+						total++;
+						if(total > 0){
+							stage = 3;
+							total =0;
+						}
+					}
+					else if( stage == 3){
+						if(!flag)
+							$('#text').fadeOut();
+						lasers.push(new Laser());
+						lasers.push(new Laser());
+						lasers.push(new Laser());
+						lasers.push(new Laser());
+						lasers.push(new Laser());
+						lasers.push(new Laser());
+						lasers.push(new Laser());
+						//console.log(total);
+						if(total>1){
+							if(!flag){
+								$('#text').css({
+									right: 0,
+									bottom: 10,
+									width: '100%',
+								}).text('But they continued to massacre us.').fadeIn(function(){flag=true;});
+							}
+							var s = $('.sabha');
+							for(var i =0 ;i<s.length; ++i){
+								var elem = s.eq(i);
+								elem.animate({
+									top: getn(-500, 500),
+									left: getn(-500, 500)
+								},1000, function(){
+										if(getn(0,5)>3)$(this).remove();
+									});
+							}
+						}
+						if(total > 6){
+							clear = false;
+							$('.speaker,.sabha').fadeOut(1000, function(){
+								$('.speaker,.sabha').remove();
+								$('#text').fadeOut();
+								stage =4;
+								total = 0;
+								clear = true;
+								flag=false;
+							});
+						}
+						total++;
+					}
+					else if( stage == 4){
+						if(!flag){
+							$('#text').css({
+								right: 0,
+								top: '40%',
+								width: '100%',
+								margin: 0,
+								fontSize: '3em',
+							}).text('We got more agitated.').fadeIn(function(){flag=true;});
+						}
+						total++;
+						if( total ==3 ){
+							stage = 5;
+							total = 0;
+						}
+					}
+					else if(stage == 5){
+						$('body').css('background', '#555');
+						for(var i = 0; i<5; ++i){
+							if(!aTemp.length)break;
+							var per = $('<div class="person"></div>').appendTo($('body'));
+							var id = getn(0,aTemp.length);
+							per.css({
+								height: getn(30,75),
+								width: getn(30,75),
+								background: 'rgb('+getn(0+(4*255/5),255)+','+getn(0,255-(4*255/5))+','+getn(0,255-(4*255/5))+')',
+								borderRadius: getn(5,25),
+								top: aTemp[id][1],
+								left: aTemp[id][0],
+								display: 'none',
+								transition: 'background-color 1s'
+							}).fadeIn(500);
+							pers[a.indexOf(aTemp[id])]= per;
+							aTemp.splice(id,1);
+						}
+						if(total > 3){
+							$('#text').fadeOut();
+						}
+						total++;
+						if(total > 15){
+							total = 0;
+							stage=6;
+						}
+					}
+					else if(stage == 6){
+						$('#text').css({
+								position: 'relative',
+								marginTop: 20,
+								fontSize: '3em',
+								color: 'white'
+							}).text('But the enlightened one helped us.').fadeIn();
+						var per = $('<div class="person"></div>').appendTo($('body'));
+						gandhiji = per;
+						per.css({
+							height: 80,
+							width: 10,
+							background: 'rgb(84, 245, 84)',
+							borderRadius: 5,
+							top: 20,
+							left: 30,
+							display: 'none',
+							transform: 'rotate(5deg)',
+							boxShadow: '0 0 10px 1px white',
+							transition: 'box-shadow 1s'
+						}).fadeIn(1000)
+						stage = 7;
+						total = 0;
+					}
+					else if(stage == 7){
+						if(total==2){
+							$('#text').fadeOut(function(){
+								$('#text').css({
+									fontSize: '2em',
+								}).text('He taught us peace.').fadeIn();
+							})
+							gandhiji.css({
+								boxShadow: '0 0 60px 25px white'
+							});
+						}
+						if (total == 3) {
+							gandhiji.css({
+								boxShadow: '0 0 40px 20px white'
+							});
+						}
+						total++;
+						if(total>6){
+							total=0;
+							stage=8;
+							left = parseInt(gandhiji.css('left'));
+							iii=0;
+							$('body').css({
+								transition: 'background-color 4s',
+								backgroundColor: 'white',
+							});
+							$('#text').fadeOut(function(){
+								$('#text').css({
+									transition: 'color 4s',
+									color: 'black',
+								}).text('He calmed us down...').fadeIn();
+							});
+						}
+					}
+					else if(stage == 8){
+						total++;
+						var topdest = 300;
+						var leftdest = 1200;
+						if(total<9){
+							gandhiji.animate({
+								left: '+='+(leftdest/8),
+								top: '+='+(topdest/8)
+							},500,'linear');
+							
+							left += (leftdest/8);
+							console.log(a,iii);
+							while(iii < a.length && a[iii][0]< left){
+								pers[iii].css({
+									backgroundColor: 'rgb('+getn(0,100)+','+getn(0,100)+','+getn(150,255)+')'
+								});
+								iii++;
+							}
+						}
+						else{
+							total = 0;
+							stage = 9;
+						}
+					}
+					else if(stage == 9){
+						$('#text').fadeOut(function(){
+								$('#text').text('...and united us.').fadeIn();
+							});
+						for(i=0;i<pers.length; i++){
+							pers[i].animate({
+								top: (getn(8,12)/10)*((a[i][1]<260)?270:340),
+							});
+						}
+						stage = 10;
+						total = 0;
+					}
+					else if(stage == 10){
+						if(total>2){
+							stage = 11;
+							total = 0;
+						}
+						total++;
+					}
+					else if(stage ==11){
+						$('#text').fadeOut();
+						$('body').animate({
+							width: '150%',
+							left: '-60%',
+						},500,function(){
+							gandhiji.animate({
+								left: '+=100px'
+							});
+							stage = 13;
+						})
+						stage = 12;
+					}
+					else if(stage ==13){
+						$('#text').css({
+							position: 'absolute',
+							left: '40.5%',
+							width: '66%',
+							top: 0
+						}).text('He lead us on the path of freedom without fear.').fadeIn();
+						stage = 14;
+						total=0;
+					}
+					else if(stage == 14){
+						$('.person').animate({
+							left: '+=3000px'
+						},6000,function(){
+							$('#text').fadeOut(function(){
+								$('#text').css({
+									top: '30%',
+									fontSize: '3em'
+								}).html('United we stand.<br>Divided we fall.').fadeIn();
+								stage = 15
+							})
+						});
+						stage = 21;
+						total=0;
+					}
+					else if(stage == 15){
+						if(total>4){
+							$('#text').fadeOut(function(){
+								$('#text').text('The End.').fadeIn();
+								window.clearInterval(inter);
+							})
+							stage = 16;
+						}
+						total++;
+					}
+					else if(stage == 16){
+						window.clearInterval(inter);
+					}
+					clear = true;
+				},500);
+			}
+		</script>
+	</head>
+	<body onload='init()'>
+		<div id='text' style='text-align:center;margin-top: 20px;font-size:2em;z-index:500 !important;'></div>
+	</body>
+</html>
